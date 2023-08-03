@@ -9,9 +9,10 @@
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="100dp"
-        android:layout_margin="10dp"
+        android:layout_margin="20dp"
         android:src="@drawable/ic_camera"
         android:scaleType="fitCenter"
+        android:contentDescription="@string/app_name"
         android:background="?attr/selectableItemBackground"/>
 
     <ImageView
@@ -19,9 +20,10 @@
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="100dp"
-        android:layout_margin="10dp"
+        android:layout_margin="20dp"
         android:src="@drawable/ic_gallery"
         android:scaleType="fitCenter"
+        android:contentDescription="@string/app_name"
         android:background="?attr/selectableItemBackground"/>
 
 </LinearLayout>

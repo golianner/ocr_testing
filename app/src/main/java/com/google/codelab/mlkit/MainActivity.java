@@ -105,6 +105,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private static final int REQUEST_CAMERA = 11;
     private static final int REQUEST_GALLERY = 12;
 
+    GenerateKTPData ktpData;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -206,6 +208,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     mImageView.setImageBitmap(bitmap);
                     mSelectedImage = bitmap;
                 }
+                runTextRecognition();
             }
 
             @Override
@@ -216,7 +219,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     private void runTextRecognition() {
-        InputImage image = InputImage.fromBitmap(mSelectedImage, 270);
+        InputImage image = InputImage.fromBitmap(mSelectedImage, 0);
         TextRecognizerOptions.Builder textRecognizerOptions = new TextRecognizerOptions.Builder();
         TextRecognizerOptions options = textRecognizerOptions.build();
         TextRecognizer recognizer = TextRecognition.getClient(options);
@@ -229,6 +232,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                                 mTextButton.setEnabled(true);
 //                                processTextRecognitionResult(texts);
                                 processTextRecognitionResultNew(texts);
+//                                ktpData = new GenerateKTPData(texts);
                             }
                         })
                 .addOnFailureListener(
@@ -251,7 +255,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 results.add(line.getText());
             }
         }
-        GenerateKTPData ktpData = new GenerateKTPData(results);
+        ktpData = new GenerateKTPData(results);
 //        Log.d("Hasilnya", Arrays.toString(results.toArray()));
     }
 
