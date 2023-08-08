@@ -58,6 +58,8 @@ public class GenerateKTPData {
     private int lastIndexIdentifier = 0;
     private int lastIndexValue = 0;
 
+    private int alamatLine = 0;
+
     public GenerateKTPData(List<String> resultScan) {
         System.out.println(Arrays.toString(resultScan.toArray()));
         this.resultScan = resultScan;
@@ -70,58 +72,80 @@ public class GenerateKTPData {
     }
 
     private boolean isIdentifierTempatTanggalLahir(String data){
-        return data.equalsIgnoreCase("tempat/tgl lahir")
-                || data.contains("Tempa")
-                || data.contains("Tgl")
-                || data.contains("lahir")
-                || data.length() <= 16;
+        data = data.toLowerCase();
+        return data.equals("tempat/tgl lahir")
+                || data.contains("tempa")
+                || data.contains("tgl")
+                || data.contains("lahir");
     }
 
     private boolean isIdentifierJenisKelamin(String data){
-        return data.equalsIgnoreCase("jenis kelamin")
-                || data.contains("Jenis") || data.contains("Kelamin")
-                || (data.split(" ")[0].toLowerCase().contains("j")
-                && data.split(" ")[0].length() == 5);
+        data = data.toLowerCase();
+        return data.equals("jenis kelamin")
+                || data.startsWith("jenis") || data.endsWith("kelamin") || (data.startsWith("j") && data.split(" ")[0].length() == 5);
     }
 
     private boolean isIdentifierAlamat(String data){
-        return data.contains("Alamat") || (data.contains("Ala") && data.length() == 7);
+        data = data.toLowerCase();
+        return data.contains("alamat") || (data.contains("ala") && data.length() == 7);
     }
 
     private boolean isIdentifierRtRw(String data){
-        return data.equalsIgnoreCase("rt/rw")
-                || data.toLowerCase().startsWith("rt")
-                || data.toLowerCase().endsWith("rw");
+        data = data.toLowerCase();
+        return data.equals("rt/rw")
+                || data.startsWith("rt")
+                || data.endsWith("rw");
     }
 
     private boolean isIdentifierKelDesa(String data){
-        return data.equalsIgnoreCase("kel/desa")
-                || data.toLowerCase().startsWith("kel")
-                || data.toLowerCase().endsWith("desa");
+        data = data.toLowerCase();
+        return data.equals("kel/desa")
+                || data.startsWith("kel")
+                || data.endsWith("desa");
     }
 
     private boolean isIdentifierKecamatan(String data){
-        return data.contains("Kecamatan") || data.contains("Kec") || data.contains("matan");
+        data = data.toLowerCase();
+        return data.equals("kecamatan") || data.startsWith("kec") || data.endsWith("matan");
     }
 
     private boolean isIdentifierAgama(String data){
-        return data.contains("Agama")
-                || data.toLowerCase().startsWith("ag")
-                || data.toLowerCase().endsWith("ma");
+        data = data.toLowerCase();
+        return data.equals("agama")
+                || data.startsWith("aga")
+                || data.endsWith("ma");
     }
 
     private boolean isIdentifierStatusPerkawinan(String data){
-        return data.equals("Status Perkawinan") || data.startsWith("Status")
-                || data.endsWith("Perkawinan");
+        data = data.toLowerCase();
+        return data.equals("status perkawinan") || data.startsWith("status")
+                || data.endsWith("perkawinan");
     }
 
     private boolean isIdentifierKabKota(String data){
-        return data.toLowerCase().contains("kabupaten") || data.toLowerCase().contains("kota");
+        data = data.toLowerCase();
+        return data.contains("kabupaten") || data.contains("kota");
     }
 
     private boolean isIdentifierGolDarah(String data){
-        return data.equalsIgnoreCase("Gol. Darah") ||
-                data.toLowerCase().contains("gol") || data.toLowerCase().contains("darah");
+        data = data.toLowerCase();
+        return data.equals("gol. darah") ||
+                data.contains("gol") || data.contains("darah");
+    }
+
+    private boolean isNotIdentifierPekerjaan(String data){
+        data = data.toLowerCase();
+        return data.equals("pekerjaan") || data.startsWith("peker") || data.endsWith("kerjaan");
+    }
+
+    private boolean isNotIdentifierBerlakuHingga(String data){
+        data = data.toLowerCase();
+        return data.equals("berlaku hingga") || data.startsWith("berlaku") || data.endsWith("hingga");
+    }
+    
+    private boolean isNotIdentifierKewarganegaraan(String data){
+        data = data.toLowerCase();
+        return data.equals("kewarganegaraan") || data.startsWith("kewarga") || data.endsWith("negaraan");
     }
 
     private boolean isNotIdentifier(String data){
@@ -129,24 +153,39 @@ public class GenerateKTPData {
                 || isIdentifierJenisKelamin(data) || isIdentifierAlamat(data) || isIdentifierRtRw(data)
                 || isIdentifierKelDesa(data) || isIdentifierKecamatan(data) || isIdentifierAgama(data)
                 || isIdentifierStatusPerkawinan(data) || isIdentifierGolDarah(data) || data.toLowerCase().contains("provinsi")
-                || isIdentifierKabKota(data);
+                || isIdentifierKabKota(data) || isNotIdentifierPekerjaan(data) || isNotIdentifierBerlakuHingga(data) || isNotIdentifierKewarganegaraan(data);
         return !result;
     }
 
     private boolean isValidJenisKelamin(String data){
-        return data.toLowerCase().contains("laki-laki") || data.toLowerCase().contains("perempuan")
+        data = data.toLowerCase().replace(":","");
+        return data.contains("laki-laki") || data.contains("perempuan")
                 || data.startsWith("lak")
                 || data.startsWith("per");
     }
 
     private boolean isValidRtRw(String data){
-        return data.contains("/") && data.length() == 7 && !data.contains(":") && isNumberExist(data);
+        return data.contains("/") && data.replace(":","").length() == 7 && isNumberExist(data);
     }
 
     private boolean isValidAgama(String data){
         return data.equalsIgnoreCase("islam") || data.equalsIgnoreCase("kristen")
                 || data.equalsIgnoreCase("katolik") || data.equalsIgnoreCase("budha")
                 || data.equalsIgnoreCase("hindu") || data.equalsIgnoreCase("konghuchu");
+    }
+
+    private boolean isValidGolDarah(String data){
+        return data.equalsIgnoreCase("a") || data.equalsIgnoreCase("b") || data.equalsIgnoreCase("ab")
+                || data.equalsIgnoreCase("o");
+    }
+
+    private boolean isPossibleAlamat(String data){
+        data = data.toLowerCase();
+        return data.contains("jl.") || data.contains("jalan ") || data.contains("no.") || data.contains("blok.") || data.contains("blok");
+    }
+
+    private boolean isPossibleDate(String data){
+        return data.contains("-") && data.split("-").length == 3 && isNumberExist(data);
     }
 
     private void validateData(){
@@ -216,6 +255,7 @@ public class GenerateKTPData {
     private void mappingData(){
         // Can be converted into List<Text.Line> instead of List<String> to reduce looping
         for (String data : resultScan){
+//            if (getAlamatLineTwo(data)) continue;
             if (getNIKData(data)) continue;
             if (getNamaData(data)) continue;
             if (getTempatLahirData(data)) continue;
@@ -249,16 +289,92 @@ public class GenerateKTPData {
         System.out.println("PROVINSI "+provinsi);
         System.out.println("KABUPATEN/KOTA "+kabupatenKota);
         System.out.println("GOLONGAN DARAH "+golonganDarah.getValue());
+        System.out.println(Arrays.toString(identifiers.toArray()));
+    }
+
+    private boolean isPreviousAndNextFound(String identifier){
+        int index = identifiers.indexOf(identifier);
+        boolean prev = false, next = false;
+        int lastIndex = identifiers.size() - 1;
+        if (index < 0) return false;
+        if (index > 0){
+            String idtf = identifiers.get(index - 1);
+            switch (idtf){
+                case "nik":
+                    prev = isNikFound;
+                    break;
+                case "nama":
+                    prev = isNamaFound;
+                    break;
+                case "ttl":
+                    prev = isTempatLahirFound;
+                    break;
+                case "alamat":
+                    prev = isAlamatFound;
+                    break;
+                case "rtrw":
+                    prev = isRtRwFound;
+                    break;
+                case "keldesa":
+                    prev = isKelDesaFound;
+                    break;
+                case "kec":
+                    prev = isKecamatanFound;
+                    break;
+                case "agama":
+                    prev = isAgamaFound;
+                    break;
+                case "sp":
+                    prev = isStatusPerkawinanFound;
+                    break;
+                case "gd":
+                    prev = isGolonganDarahFound;
+                    break;
+            }
+        }
+        if (index < lastIndex){
+            String idtf = identifiers.get(index + 1);
+            switch (idtf){
+                case "nik":
+                    next = isNikFound;
+                    break;
+                case "nama":
+                    next = isNamaFound;
+                    break;
+                case "ttl":
+                    next = isTempatLahirFound;
+                    break;
+                case "alamat":
+                    next = isAlamatFound;
+                    break;
+                case "rtrw":
+                    next = isRtRwFound;
+                    break;
+                case "keldesa":
+                    next = isKelDesaFound;
+                    break;
+                case "kec":
+                    next = isKecamatanFound;
+                    break;
+                case "agama":
+                    next = isAgamaFound;
+                    break;
+                case "sp":
+                    next = isStatusPerkawinanFound;
+                    break;
+                case "gd":
+                    next = isGolonganDarahFound;
+                    break;
+            }
+        }
+        return prev || next;
     }
 
     // Scpecial field : Jenis Kelamin, Golongan Darah, Agama
     private boolean exceptionForSpecialField(String data){
         data = data.toLowerCase();
-        boolean result =  data.equals("laki-laki") || data.equals("perempuan") || data.equals("a") || data.equals("b")
-                || data.equals("ab") || data.equals("o") || data.equals("kawin") || data.equals("belum kawin")
-                || data.equals("islam") || data.equals("kristen") || data.equals("katolik")
-                || data.equals("budha") || data.equals("hindu") || data.equals("konghuchu")
-                || data.startsWith("lak") || data.startsWith("per") || data.split("-").length == 3;
+        boolean result = isValidAgama(data) || isValidRtRw(data) || isValidJenisKelamin(data) || isValidGolDarah(data)
+                || data.equals("kawin") || data.equals("belum kawin");
         return !result;
     }
 
@@ -267,6 +383,18 @@ public class GenerateKTPData {
         Pattern pattern = Pattern.compile(".*\\d.*");
         Matcher matcher = pattern.matcher(data);
         return matcher.find();
+    }
+
+    private boolean getAlamatLineTwo(String data){
+        if (alamatLine == 1){
+            if (isNotIdentifier(data) && exceptionForSpecialField(data) && !isPossibleDate(data)){
+                String newAlamat = alamat.getValue() + " " + data;
+                alamat.setValue(newAlamat);
+                alamatLine = 2;
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean getNIKData(String data){
@@ -314,12 +442,18 @@ public class GenerateKTPData {
             isNamaFound = true;
             return true;
         }
-        if (isNotIdentifier(data) && !isValidJenisKelamin(data) && !isValidRtRw(data) && !isValidAgama(data)
-            && identifiers.indexOf("nama") == lastIndexValue && !data.contains(":")){
-            nama.setValue(data);
-            lastIndexValue++;
-            isNamaFound = true;
-            return true;
+        if (isNotIdentifier(data) && exceptionForSpecialField(data) && !isPossibleAlamat(data) && !isPossibleDate(data)){
+            if (identifiers.indexOf("nama") == lastIndexValue && !data.contains(":")){
+                nama.setValue(data);
+                lastIndexValue++;
+                isNamaFound = true;
+                return true;
+            } else if (isPreviousAndNextFound("nama")){
+                nama.setValue(data);
+                lastIndexValue++;
+                isNamaFound = true;
+                return true;
+            }
         }
         return false;
     }
@@ -328,11 +462,24 @@ public class GenerateKTPData {
         if (data.length() < 11) return false;
         boolean isTempatTglLahir = isIdentifierTempatTanggalLahir(data);
         if (isTempatLahirFound) return false;
-        if (isTempatTglLahir && !data.contains(":") && tempatLahir.getIndex() < 0){
+        if (isTempatTglLahir && !data.contains(":") && tempatLahir.getIndex() < 0 && data.length() <= 16){
             tempatLahir.setIndex(lastIndexIdentifier);
             tanggalLahir.setIndex(lastIndexIdentifier);
             lastIndexIdentifier++;
             identifiers.add("ttl");
+            return true;
+        }
+        if (isTempatTglLahir && data.contains(":")){
+            String ttlLengkap = data.split(":")[1];
+            if (data.contains("-") && data.contains(",")){
+                String[] ttl = ttlLengkap.split(",");
+                tempatLahir.setValue(ttl[0]);
+                tanggalLahir.setValue(ttl[1]);
+                isTanggalLahirFound = true;
+            } else {
+                tempatLahir.setValue(ttlLengkap);
+            }
+            isTempatLahirFound = true;
             return true;
         }
         if (data.toCharArray()[0] == ':' && lastIndexValue == tempatLahir.getIndex() && exceptionForSpecialField(data)){
@@ -345,6 +492,19 @@ public class GenerateKTPData {
                 tempatLahir.setValue(data.replace(":", ""));
             }
             lastIndexValue++;
+            isTempatLahirFound = true;
+            return true;
+        }
+        if (!data.contains(":") && data.toLowerCase().contains("lahir") && data.toLowerCase().split("lahir").length > 1){
+            String[] ttl = data.toLowerCase().split("lahir");
+            if (ttl[1].contains("-") && ttl[1].contains(",")){
+                String[] ttlNow = ttl[1].split(",");
+                tempatLahir.setValue(ttlNow[0].toUpperCase());
+                tanggalLahir.setValue(ttlNow[1].replace(" ",""));
+                isTanggalLahirFound = true;
+            } else {
+                tempatLahir.setValue(ttl[1].toUpperCase());
+            }
             isTempatLahirFound = true;
             return true;
         }
@@ -370,7 +530,12 @@ public class GenerateKTPData {
 
     private boolean getTanggalLahirData(String data){
         if (isTanggalLahirFound) return false;
-        if (lastIndexValue - 1 == tanggalLahir.getIndex() && data.split("-").length == 3){
+        if (lastIndexValue - 1 == tanggalLahir.getIndex() && data.split("-").length == 3 && isTempatLahirFound){
+            tanggalLahir.setValue(data);
+            isTanggalLahirFound = true;
+            return true;
+        }
+        if (!data.contains(":") && data.contains("-") && isNumberExist(data) && data.split("-").length == 3){
             tanggalLahir.setValue(data);
             isTanggalLahirFound = true;
             return true;
@@ -397,7 +562,7 @@ public class GenerateKTPData {
         boolean isValue = isValidJenisKelamin(data);
         if (isValue){
             jenisKelamin.setValue(data);
-            lastIndexValue++;
+            if (jenisKelamin.getIndex() > -1) lastIndexValue++;
             isJenisKelaminFound = true;
             return true;
         }
@@ -417,14 +582,30 @@ public class GenerateKTPData {
             alamat.setValue(data.replace(":", ""));
             lastIndexValue++;
             isAlamatFound = true;
+            alamatLine = 1;
             return true;
         }
-        if (!data.contains(":") && isNotIdentifier(data) && !isValidAgama(data) && !isValidRtRw(data) && !isValidJenisKelamin(data)
-            && lastIndexValue == identifiers.indexOf("alamat")){
-            alamat.setValue(data);
-            lastIndexValue++;
-            isAlamatFound = true;
-            return true;
+        if (isNotIdentifier(data) && exceptionForSpecialField(data)) {
+            String dt = data.contains(":") ? data.replace(":","") : data;
+            if (isPossibleAlamat(data)){
+                alamat.setValue(dt);
+                lastIndexValue++;
+                isAlamatFound = true;
+                alamatLine = 1;
+                return true;
+            } else if (lastIndexValue == alamat.getIndex()){
+                alamat.setValue(dt);
+                lastIndexValue++;
+                isAlamatFound = true;
+                alamatLine = 1;
+                return true;
+            } else if (isPreviousAndNextFound("alamat")){
+                alamat.setValue(dt);
+                lastIndexValue++;
+                isAlamatFound = true;
+                alamatLine = 1;
+                return true;
+            }
         }
         return false;
     }
@@ -446,7 +627,7 @@ public class GenerateKTPData {
         }
         if (isValidRtRw(data)){
             rtRw.setValue(data);
-            lastIndexValue++;
+            if (rtRw.getIndex() > -1) lastIndexValue++;
             isRtRwFound = true;
             return true;
         }
@@ -469,13 +650,28 @@ public class GenerateKTPData {
             isKelDesaFound = true;
             return true;
         }
+        if (isNotIdentifier(data) && !isValidRtRw(data) && !isValidJenisKelamin(data) && !isValidAgama(data)
+                && !isPossibleDate(data) && !isPossibleAlamat(data)){
+            String dt = data.contains(":") ? data.replace(":","") : data;
+            if (lastIndexValue == kelDesa.getIndex()){
+                kelDesa.setValue(dt);
+                lastIndexValue++;
+                isKelDesaFound = true;
+                return true;
+            } else if (isPreviousAndNextFound("kd")){
+                kelDesa.setValue(data.replace(":", ""));
+                lastIndexValue++;
+                isKelDesaFound = true;
+                return true;
+            }
+        }
         return false;
     }
 
     private boolean getKecamatanData(String data){
         if (isKecamatanFound) return false;
         boolean isIdentifier = isIdentifierKecamatan(data);
-        if (isIdentifier && kecamatan.getIndex() < 0){
+        if (isIdentifier && kecamatan.getIndex() < 0 && !data.contains(":")){
             kecamatan.setIndex(lastIndexIdentifier);
             lastIndexIdentifier++;
             identifiers.add("kec");
@@ -486,6 +682,21 @@ public class GenerateKTPData {
             lastIndexValue++;
             isKecamatanFound = true;
             return true;
+        }
+        if (isNotIdentifier(data) && !isValidRtRw(data) && !isValidJenisKelamin(data) && !isValidAgama(data)
+                && !isPossibleDate(data) && !isPossibleAlamat(data)){
+            String dt = data.contains(":") ? data.replace(":","") : data;
+            if (lastIndexValue == kecamatan.getIndex()){
+                kecamatan.setValue(dt);
+                lastIndexValue++;
+                isKecamatanFound = true;
+                return true;
+            } else if (isPreviousAndNextFound("kec")){
+                kecamatan.setValue(data.replace(":", ""));
+                lastIndexValue++;
+                isKecamatanFound = true;
+                return true;
+            }
         }
         return false;
     }
@@ -510,7 +721,7 @@ public class GenerateKTPData {
         boolean isNormalReligion = isValidAgama(data);
         if (isNormalReligion && !data.contains(":")){
             agama.setValue(data);
-            lastIndexValue++;
+            if (agama.getIndex() > -1) lastIndexValue++;
             isAgamaFound = true;
             return true;
         }
@@ -528,6 +739,7 @@ public class GenerateKTPData {
         }
         if (isIdentifier && data.contains(":")){
             statusPerkawinan.setValue(data.split(":")[1]);
+            isStatusPerkawinanFound = true;
             return true;
         }
         if (isIdentifier && data.split(" ").length > 2){
@@ -537,10 +749,23 @@ public class GenerateKTPData {
             isStatusPerkawinanFound = true;
             return true;
         }
-        if (!isIdentifier && data.toLowerCase().contains("kawin")){
-            statusPerkawinan.setValue(data.replace(":",""));
-            lastIndexValue++;
-            isStatusPerkawinanFound = true;
+        if (!isIdentifier && data.toLowerCase().endsWith("kawin")){
+            String dt = "";
+            if (data.contains(":")){
+                dt = data.split(":")[1];
+            } else {
+                if (data.toLowerCase().startsWith("belum") || data.toLowerCase().startsWith("kawin")){
+                    dt = data;
+                } else {
+                    String[] spkw = data.split(" ");
+                    if (spkw.length > 2) dt = spkw.length > 3 ? spkw[2]+spkw[3] : spkw[2];
+                }
+            }
+            if (!dt.isEmpty()) {
+                statusPerkawinan.setValue(dt);
+                if (statusPerkawinan.getIndex() > -1) lastIndexValue++;
+                isStatusPerkawinanFound = true;
+            }
             return true;
         }
         return false;
