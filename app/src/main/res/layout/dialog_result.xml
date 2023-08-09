@@ -12,6 +12,22 @@
         android:orientation="vertical"
         tools:ignore="UselessParent">
 
+        <TextView
+            android:id="@+id/tv_provinsi"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textAlignment="center"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"/>
+
+        <TextView
+            android:id="@+id/tv_kabkota"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textAlignment="center"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"/>
+
         <include
             android:id="@+id/nik"
             layout="@layout/biodata"/>

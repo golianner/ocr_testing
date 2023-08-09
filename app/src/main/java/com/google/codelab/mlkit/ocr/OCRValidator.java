@@ -13,8 +13,8 @@ public class OCRValidator {
     public boolean isValidJenisKelamin(String data){
         data = data.toLowerCase().replace(":","");
         return data.contains("laki-laki") || data.contains("perempuan")
-                || data.startsWith("lak")
-                || data.startsWith("per");
+                || data.startsWith("lak") || data.contains("aki-lak") || data.endsWith("laki")
+                || data.startsWith("per") || data.endsWith("rempuan");
     }
 
     public boolean isValidRtRw(String data){
@@ -43,6 +43,17 @@ public class OCRValidator {
 
     public boolean isPossibleDate(String data){
         return data.contains("-") && data.split("-").length == 3 && isNumberExist(data);
+    }
+
+    public boolean isPossiblePekerjaan(String data){
+        data = data.toLowerCase();
+        return data.contains("pelajar") || data.contains("mahasiswa") || data.contains("karyawan")
+                || data.contains("bekerja");
+    }
+
+    public boolean isPossibleMasaBerlaku(String data){
+        data = data.toLowerCase();
+        return data.equals("seumur hidup") || data.startsWith("seumur") || data.endsWith("hidup");
     }
 
     public void validateData(String nik, String tanggalLahir, String rtRw, String golonganDarah,

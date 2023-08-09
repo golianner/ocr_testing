@@ -277,8 +277,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         Dialog dialog = new Dialog(MainActivity.this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setCancelable(true);
-        dialog.setCanceledOnTouchOutside(false);
+        dialog.setCanceledOnTouchOutside(true);
         dialog.setContentView(R.layout.dialog_result);
+
+        TextView txtProvinsi = dialog.findViewById(R.id.tv_provinsi);
+        TextView txtKabKota = dialog.findViewById(R.id.tv_kabkota);
+
+        txtProvinsi.setText(ktpData.getProvinsi());
+        txtKabKota.setText(ktpData.getKabupatenKota());
 
         TextView txtIdentifierNIK = dialog.findViewById(R.id.nik).findViewById(R.id.tv_identifier);
         TextView txtIdentifierNama = dialog.findViewById(R.id.nama).findViewById(R.id.tv_identifier);

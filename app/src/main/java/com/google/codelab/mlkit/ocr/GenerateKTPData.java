@@ -222,6 +222,7 @@ public class GenerateKTPData {
         data = data.toLowerCase();
         boolean result = ocrValidator.isValidAgama(data) || ocrValidator.isValidRtRw(data)
                 || ocrValidator.isValidJenisKelamin(data) || ocrValidator.isValidGolDarah(data)
+                || ocrValidator.isPossiblePekerjaan(data) || ocrValidator.isPossibleMasaBerlaku(data)
                 || data.endsWith("kawin") || data.equals("wni");
         return !result;
     }
@@ -514,7 +515,7 @@ public class GenerateKTPData {
         if (isNotIdentifier(data) && exceptionForSpecialField(data) && !ocrValidator.isPossibleDate(data)
                 && !ocrValidator.isPossibleAlamat(data)){
             String dt = data.contains(":") ? data.replace(":","") : data;
-            if (lastIndexValue == kecamatan.getIndex()){
+            if (lastIndexValue == kecamatan.getIndex() || lastIndexValue == identifiers.indexOf("kec")){
                 kecamatan.setValue(dt);
                 lastIndexValue++;
                 isKecamatanFound = true;
