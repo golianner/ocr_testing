@@ -22,14 +22,18 @@ public class OCRValidator {
     }
 
     public boolean isValidAgama(String data){
-        return data.equalsIgnoreCase("islam") || data.equalsIgnoreCase("kristen")
-                || data.equalsIgnoreCase("katolik") || data.equalsIgnoreCase("budha")
-                || data.equalsIgnoreCase("hindu") || data.equalsIgnoreCase("konghuchu");
+        data = data.toLowerCase().replace(":","");
+        data = data.replace(" ","");
+        return data.equals("islam") || data.equals("kristen")
+                || data.equals("katolik") || data.equals("budha")
+                || data.equals("hindu") || data.equals("konghuchu");
     }
 
     public boolean isValidGolDarah(String data){
-        return data.equalsIgnoreCase("a") || data.equalsIgnoreCase("b") || data.equalsIgnoreCase("ab")
-                || data.equalsIgnoreCase("o");
+        data = data.toLowerCase().replace(":","");
+        return data.equals("a") || data.equals("b") || data.equals("ab")
+                || data.equals("o") || data.equals("0") || data.equals("4") || data.equals("48")
+                || data.equals("4b") || data.equals("a8");
     }
 
     public boolean isPossibleAlamat(String data){
@@ -44,8 +48,8 @@ public class OCRValidator {
     public void validateData(String nik, String tanggalLahir, String rtRw, String golonganDarah,
                              String jenisKelamin, OCRValidator.ValueSetter setter){
         // NIK Validation
-        String[] cari = {"l","I","z","Z","A","S","s","b","J","B","q","o","O"};
-        String[] ganti = {"1","1","2","2","4","5","5","6","7","8","9","0","0"};
+        String[] cari = {"l","I","z","Z","A","S","s","b","J","B","q","o","O",")"};
+        String[] ganti = {"1","1","2","2","4","5","5","6","7","8","9","0","0","1"};
         for (int i = 0; i < cari.length; i++){
             nik = nik.replace(cari[i], ganti[i]);
         }

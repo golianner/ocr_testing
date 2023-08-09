@@ -60,7 +60,7 @@ public class IdentifierChecker {
     public boolean isIdentifierGolDarah(String data){
         data = data.toLowerCase();
         return data.equals("gol. darah") ||
-                data.contains("gol") || data.contains("darah");
+                data.contains("gol.") || data.contains("darah");
     }
 
     public boolean isNotIdentifierPekerjaan(String data){

@@ -222,7 +222,7 @@ public class GenerateKTPData {
         data = data.toLowerCase();
         boolean result = ocrValidator.isValidAgama(data) || ocrValidator.isValidRtRw(data)
                 || ocrValidator.isValidJenisKelamin(data) || ocrValidator.isValidGolDarah(data)
-                || data.equals("kawin") || data.equals("belum kawin") || data.equals("wni");
+                || data.endsWith("kawin") || data.equals("wni");
         return !result;
     }
 
@@ -379,19 +379,19 @@ public class GenerateKTPData {
         if (isJenisKelaminFound) return false;
         if (data.length() < 3) return false;
         boolean isIdentifier = identifierChecker.isIdentifierJenisKelamin(data);
+        boolean isValue = ocrValidator.isValidJenisKelamin(data);
         if (data.toCharArray()[0] != ':' && isIdentifier && jenisKelamin.getIndex() < 0){
             jenisKelamin.setIndex(lastIndexIdentifier);
             lastIndexIdentifier++;
             identifiers.add("jk");
             return true;
         }
-        if (data.toCharArray()[0] == ':' && lastIndexValue == jenisKelamin.getIndex()){
+        if (data.toCharArray()[0] == ':' && lastIndexValue == jenisKelamin.getIndex() && isValue){
             jenisKelamin.setValue(data.replace(":", ""));
             lastIndexValue++;
             isJenisKelaminFound = true;
             return true;
         }
-        boolean isValue = ocrValidator.isValidJenisKelamin(data);
         if (isValue){
             jenisKelamin.setValue(data);
             if (jenisKelamin.getIndex() > -1) lastIndexValue++;
@@ -469,13 +469,7 @@ public class GenerateKTPData {
         if (isIdentifier && kelDesa.getIndex() < 0){
             kelDesa.setIndex(lastIndexIdentifier);
             lastIndexIdentifier++;
-            identifiers.add("keldesa");
-            return true;
-        }
-        if (data.toCharArray()[0] == ':' && lastIndexValue == kelDesa.getIndex()){
-            kelDesa.setValue(data.replace(":", ""));
-            lastIndexValue++;
-            isKelDesaFound = true;
+            identifiers.add("kd");
             return true;
         }
         if (isNotIdentifier(data) && exceptionForSpecialField(data)
@@ -493,6 +487,12 @@ public class GenerateKTPData {
                 return true;
             }
         }
+//        if (data.toCharArray()[0] == ':' && lastIndexValue == kelDesa.getIndex() && exceptionForSpecialField(data)){
+//            kelDesa.setValue(data.replace(":", ""));
+//            lastIndexValue++;
+//            isKelDesaFound = true;
+//            return true;
+//        }
         return false;
     }
 
@@ -505,7 +505,7 @@ public class GenerateKTPData {
             identifiers.add("kec");
             return true;
         }
-        if (data.toCharArray()[0] == ':' && lastIndexValue == kecamatan.getIndex()){
+        if (data.toCharArray()[0] == ':' && lastIndexValue == kecamatan.getIndex() && exceptionForSpecialField(data)){
             kecamatan.setValue(data.replace(":",""));
             lastIndexValue++;
             isKecamatanFound = true;
@@ -539,15 +539,10 @@ public class GenerateKTPData {
             identifiers.add("agama");
             return true;
         }
-        if (data.toCharArray()[0] == ':' && lastIndexValue == agama.getIndex()){
-            agama.setValue(data.replace(":",""));
-            lastIndexValue++;
-            isAgamaFound = true;
-            return true;
-        }
-        // normal religion check
         boolean isNormalReligion = ocrValidator.isValidAgama(data);
-        if (isNormalReligion && !data.contains(":")){
+        if (isNormalReligion){
+            data = data.replace(" ","");
+            data = data.replace(":","");
             agama.setValue(data);
             if (agama.getIndex() > -1) lastIndexValue++;
             isAgamaFound = true;
@@ -559,25 +554,13 @@ public class GenerateKTPData {
     private boolean getStatusPerkawinanData(String data){
         if (isStatusPerkawinanFound) return false;
         boolean isIdentifier = identifierChecker.isIdentifierStatusPerkawinan(data);
-        if (isIdentifier && !data.contains(":") && statusPerkawinan.getIndex() < 0){
+        if (isIdentifier && !data.contains(":") && statusPerkawinan.getIndex() < 0 && !data.toLowerCase().endsWith("kawin")){
             statusPerkawinan.setIndex(lastIndexIdentifier);
             lastIndexIdentifier++;
             identifiers.add("sp");
             return true;
         }
-        if (isIdentifier && data.contains(":")){
-            statusPerkawinan.setValue(data.split(":")[1]);
-            isStatusPerkawinanFound = true;
-            return true;
-        }
-        if (isIdentifier && data.split(" ").length > 2){
-            String[] stPks = data.split(" ");
-            String stPk = stPks.length == 3 ? stPks[2] : stPks[2]+stPks[3];
-            statusPerkawinan.setValue(stPk);
-            isStatusPerkawinanFound = true;
-            return true;
-        }
-        if (!isIdentifier && data.toLowerCase().endsWith("kawin")){
+        if (data.toLowerCase().endsWith("kawin")){
             String dt = "";
             if (data.contains(":")){
                 dt = data.split(":")[1];
@@ -596,6 +579,18 @@ public class GenerateKTPData {
             }
             return true;
         }
+//        if (isIdentifier && data.contains(":")){
+//            statusPerkawinan.setValue(data.split(":")[1]);
+//            isStatusPerkawinanFound = true;
+//            return true;
+//        }
+//        if (isIdentifier && data.split(" ").length > 2){
+//            String[] stPks = data.split(" ");
+//            String stPk = stPks.length == 3 ? stPks[2] : stPks[2]+stPks[3];
+//            statusPerkawinan.setValue(stPk);
+//            isStatusPerkawinanFound = true;
+//            return true;
+//        }
         return false;
     }
 
@@ -631,7 +626,7 @@ public class GenerateKTPData {
     private void getGolonganDarahData(String data){
         if (isGolonganDarahFound) return;
         boolean isIdentifier = identifierChecker.isIdentifierGolDarah(data);
-        if (isIdentifier && !data.contains(":") && golonganDarah.getIndex() < 0){
+        if (isIdentifier && !data.contains(":") && golonganDarah.getIndex() < 0 && data.endsWith("darah")){
             if (golonganDarah.getIndex() < 0){
                 golonganDarah.setIndex(lastIndexIdentifier);
                 lastIndexIdentifier++;
@@ -639,22 +634,14 @@ public class GenerateKTPData {
                 return;
             }
         }
-        if (data.toCharArray()[0] == ':' && lastIndexValue == golonganDarah.getIndex()){
-            golonganDarah.setValue(data.replace(":",""));
-            lastIndexValue++;
-            isGolonganDarahFound = true;
-            return;
-        }
-        if (isIdentifier && data.contains(":")){
-            golonganDarah.setValue(data.split(":")[1]);
-            isGolonganDarahFound = true;
-            return;
-        }
         String[] splitData = data.split(" ");
-        if (isIdentifier && splitData.length == 3){
-            golonganDarah.setValue(splitData[2]);
+        if (isIdentifier && splitData.length > 2){
+            if (data.contains(":")){
+                golonganDarah.setValue(data.split(":")[1].replace(" ",""));
+            } else {
+                golonganDarah.setValue(splitData[2]);
+            }
             isGolonganDarahFound = true;
-            return;
         }
     }
 

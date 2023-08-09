@@ -14,6 +14,7 @@
 
 package com.google.codelab.mlkit;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -39,6 +40,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
@@ -90,6 +92,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
      */
     private static final int DIM_IMG_SIZE_X = 224;
     private static final int DIM_IMG_SIZE_Y = 224;
+
+    private boolean finishScan = false;
 
     private final PriorityQueue<Map.Entry<String, Float>> sortedLabels =
             new PriorityQueue<>(
@@ -219,6 +223,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     private void runTextRecognition() {
+        finishScan = false;
         InputImage image = InputImage.fromBitmap(mSelectedImage, 0);
         TextRecognizerOptions.Builder textRecognizerOptions = new TextRecognizerOptions.Builder();
         TextRecognizerOptions options = textRecognizerOptions.build();
@@ -258,10 +263,76 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         ktpData = new GenerateKTPData(results, new GenerateKTPData.Listener() {
             @Override
             public void finishScan() {
-                System.out.println(ktpData.getNik());
+                finishScan = true;
             }
         });
+        if (ktpData != null){
+            showDialogResult();
+        }
 //        Log.d("Hasilnya", Arrays.toString(results.toArray()));
+    }
+
+    @SuppressLint("CutPasteId")
+    private void showDialogResult(){
+        Dialog dialog = new Dialog(MainActivity.this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setCancelable(true);
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.setContentView(R.layout.dialog_result);
+
+        TextView txtIdentifierNIK = dialog.findViewById(R.id.nik).findViewById(R.id.tv_identifier);
+        TextView txtIdentifierNama = dialog.findViewById(R.id.nama).findViewById(R.id.tv_identifier);
+        TextView txtIdentifierTl = dialog.findViewById(R.id.tl).findViewById(R.id.tv_identifier);
+        TextView txtIdentifierTgl = dialog.findViewById(R.id.tgl).findViewById(R.id.tv_identifier);
+        TextView txtIdentifierJK = dialog.findViewById(R.id.jk).findViewById(R.id.tv_identifier);
+        TextView txtIdentifierAlamat = dialog.findViewById(R.id.alamat).findViewById(R.id.tv_identifier);
+        TextView txtIdentifierRtRw = dialog.findViewById(R.id.rtrw).findViewById(R.id.tv_identifier);
+        TextView txtIdentifierKD = dialog.findViewById(R.id.kd).findViewById(R.id.tv_identifier);
+        TextView txtIdentifierKec = dialog.findViewById(R.id.kec).findViewById(R.id.tv_identifier);
+        TextView txtIdentifierAgama = dialog.findViewById(R.id.agama).findViewById(R.id.tv_identifier);
+        TextView txtIdentifierSP = dialog.findViewById(R.id.sp).findViewById(R.id.tv_identifier);
+        TextView txtIdentifierGD = dialog.findViewById(R.id.gd).findViewById(R.id.tv_identifier);
+
+        txtIdentifierNIK.setText("NIK");
+        txtIdentifierNama.setText("Nama");
+        txtIdentifierTl.setText("Tempat Lahir");
+        txtIdentifierTgl.setText("Tanggal Lahir");
+        txtIdentifierJK.setText("Jenis Kelamin");
+        txtIdentifierAlamat.setText("Alamat");
+        txtIdentifierRtRw.setText("RT/RW");
+        txtIdentifierKD.setText("Kel/Desa");
+        txtIdentifierKec.setText("Kecamatan");
+        txtIdentifierAgama.setText("Agama");
+        txtIdentifierSP.setText("Status Perkawinan");
+        txtIdentifierGD.setText("Golongan Darah");
+
+        TextView txtValueNIK = dialog.findViewById(R.id.nik).findViewById(R.id.tv_value);
+        TextView txtValueNama = dialog.findViewById(R.id.nama).findViewById(R.id.tv_value);
+        TextView txtValueTl = dialog.findViewById(R.id.tl).findViewById(R.id.tv_value);
+        TextView txtValueTgl = dialog.findViewById(R.id.tgl).findViewById(R.id.tv_value);
+        TextView txtValueJK = dialog.findViewById(R.id.jk).findViewById(R.id.tv_value);
+        TextView txtValueAlamat = dialog.findViewById(R.id.alamat).findViewById(R.id.tv_value);
+        TextView txtValueRtRw = dialog.findViewById(R.id.rtrw).findViewById(R.id.tv_value);
+        TextView txtValueKD = dialog.findViewById(R.id.kd).findViewById(R.id.tv_value);
+        TextView txtValueKec = dialog.findViewById(R.id.kec).findViewById(R.id.tv_value);
+        TextView txtValueAgama = dialog.findViewById(R.id.agama).findViewById(R.id.tv_value);
+        TextView txtValueSP = dialog.findViewById(R.id.sp).findViewById(R.id.tv_value);
+        TextView txtValueGD = dialog.findViewById(R.id.gd).findViewById(R.id.tv_value);
+
+        txtValueNIK.setText(ktpData.getNik().getValue());
+        txtValueNama.setText(ktpData.getNama().getValue());
+        txtValueTl.setText(ktpData.getTempatLahir().getValue());
+        txtValueTgl.setText(ktpData.getTanggalLahir().getValue());
+        txtValueJK.setText(ktpData.getJenisKelamin().getValue());
+        txtValueAlamat.setText(ktpData.getAlamat().getValue());
+        txtValueRtRw.setText(ktpData.getRtRw().getValue());
+        txtValueKD.setText(ktpData.getKelDesa().getValue());
+        txtValueKec.setText(ktpData.getKecamatan().getValue());
+        txtValueAgama.setText(ktpData.getAgama().getValue());
+        txtValueSP.setText(ktpData.getStatusPerkawinan().getValue());
+        txtValueGD.setText(ktpData.getGolonganDarah().getValue());
+
+        dialog.show();
     }
 
     private void processTextRecognitionResult(Text texts) {
