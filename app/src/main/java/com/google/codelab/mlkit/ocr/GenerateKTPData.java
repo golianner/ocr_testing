@@ -1,41 +1,47 @@
 package com.google.codelab.mlkit.ocr;
 
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.google.mlkit.vision.text.Text;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class GenerateKTPData {
 
+    public interface Listener {
+        void finishScan();
+    }
+
     private List<String> resultScan;
     private Text text;
+
+    // Helper
+    private final IdentifierChecker identifierChecker = new IdentifierChecker();
+
+    private final OCRValidator ocrValidator = new OCRValidator();
 
     // Header
     private String provinsi = "";
     private String kabupatenKota = "";
 
     // Store data here
-    private KTPData nik = new KTPData();
-    private KTPData nama = new KTPData();
-    private KTPData tempatLahir = new KTPData();
-    private KTPData tanggalLahir = new KTPData();
-    private KTPData jenisKelamin = new KTPData();
-    private KTPData alamat = new KTPData();
-    private KTPData rtRw = new KTPData();
-    private KTPData kelDesa = new KTPData();
-    private KTPData kecamatan = new KTPData();
-    private KTPData agama = new KTPData();
-    private KTPData statusPerkawinan = new KTPData();
-    private KTPData pekerjaan = new KTPData();
-    private KTPData kewarganegaraan = new KTPData();
-    private KTPData berlakuHingga = new KTPData();
-    private KTPData golonganDarah = new KTPData();
+    private final KTPData nik = new KTPData();
+    private final KTPData nama = new KTPData();
+    private final KTPData tempatLahir = new KTPData();
+    private final KTPData tanggalLahir = new KTPData();
+    private final KTPData jenisKelamin = new KTPData();
+    private final KTPData alamat = new KTPData();
+    private final KTPData rtRw = new KTPData();
+    private final KTPData kelDesa = new KTPData();
+    private final KTPData kecamatan = new KTPData();
+    private final KTPData agama = new KTPData();
+    private final KTPData statusPerkawinan = new KTPData();
+    private final KTPData pekerjaan = new KTPData();
+    private final KTPData kewarganegaraan = new KTPData();
+    private final KTPData berlakuHingga = new KTPData();
+    private final KTPData golonganDarah = new KTPData();
 
     // Status found
     private boolean isNikFound = false;
@@ -49,187 +55,37 @@ public class GenerateKTPData {
     private boolean isKecamatanFound = false;
     private boolean isAgamaFound = false;
     private boolean isStatusPerkawinanFound = false;
-    private boolean isPekerjaanFound = false;
-    private boolean isKewarganegaraanFound = false;
-    private boolean isBerlakuHinggaFound = false;
     private boolean isGolonganDarahFound = false;
 
     List<String> identifiers = new ArrayList<>();
     private int lastIndexIdentifier = 0;
     private int lastIndexValue = 0;
 
-    private int alamatLine = 0;
-
-    public GenerateKTPData(List<String> resultScan) {
+    public GenerateKTPData(List<String> resultScan, GenerateKTPData.Listener listener) {
         System.out.println(Arrays.toString(resultScan.toArray()));
         this.resultScan = resultScan;
-        mappingData();
+        mappingData(listener);
     }
 
-    public GenerateKTPData(Text text) {
+    public GenerateKTPData(Text text, GenerateKTPData.Listener listener) {
         this.text = text;
-        mappingDataWithText();
-    }
-
-    private boolean isIdentifierTempatTanggalLahir(String data){
-        data = data.toLowerCase();
-        return data.equals("tempat/tgl lahir")
-                || data.contains("tempa")
-                || data.contains("tgl")
-                || data.contains("lahir");
-    }
-
-    private boolean isIdentifierJenisKelamin(String data){
-        data = data.toLowerCase();
-        return data.equals("jenis kelamin")
-                || data.startsWith("jenis") || data.endsWith("kelamin") || (data.startsWith("j") && data.split(" ")[0].length() == 5);
-    }
-
-    private boolean isIdentifierAlamat(String data){
-        data = data.toLowerCase();
-        return data.contains("alamat") || (data.contains("ala") && data.length() == 7);
-    }
-
-    private boolean isIdentifierRtRw(String data){
-        data = data.toLowerCase();
-        return data.equals("rt/rw")
-                || data.startsWith("rt")
-                || data.endsWith("rw");
-    }
-
-    private boolean isIdentifierKelDesa(String data){
-        data = data.toLowerCase();
-        return data.equals("kel/desa")
-                || data.startsWith("kel")
-                || data.endsWith("desa");
-    }
-
-    private boolean isIdentifierKecamatan(String data){
-        data = data.toLowerCase();
-        return data.equals("kecamatan") || data.startsWith("kec") || data.endsWith("matan");
-    }
-
-    private boolean isIdentifierAgama(String data){
-        data = data.toLowerCase();
-        return data.equals("agama")
-                || data.startsWith("aga")
-                || data.endsWith("ma");
-    }
-
-    private boolean isIdentifierStatusPerkawinan(String data){
-        data = data.toLowerCase();
-        return data.equals("status perkawinan") || data.startsWith("status")
-                || data.endsWith("perkawinan");
-    }
-
-    private boolean isIdentifierKabKota(String data){
-        data = data.toLowerCase();
-        return data.contains("kabupaten") || data.contains("kota");
-    }
-
-    private boolean isIdentifierGolDarah(String data){
-        data = data.toLowerCase();
-        return data.equals("gol. darah") ||
-                data.contains("gol") || data.contains("darah");
-    }
-
-    private boolean isNotIdentifierPekerjaan(String data){
-        data = data.toLowerCase();
-        return data.equals("pekerjaan") || data.startsWith("peker") || data.endsWith("kerjaan");
-    }
-
-    private boolean isNotIdentifierBerlakuHingga(String data){
-        data = data.toLowerCase();
-        return data.equals("berlaku hingga") || data.startsWith("berlaku") || data.endsWith("hingga");
-    }
-    
-    private boolean isNotIdentifierKewarganegaraan(String data){
-        data = data.toLowerCase();
-        return data.equals("kewarganegaraan") || data.startsWith("kewarga") || data.endsWith("negaraan");
+        mappingDataWithText(listener);
     }
 
     private boolean isNotIdentifier(String data){
-        boolean result = data.equalsIgnoreCase("nik") || data.equals("Nama") || isIdentifierTempatTanggalLahir(data)
-                || isIdentifierJenisKelamin(data) || isIdentifierAlamat(data) || isIdentifierRtRw(data)
-                || isIdentifierKelDesa(data) || isIdentifierKecamatan(data) || isIdentifierAgama(data)
-                || isIdentifierStatusPerkawinan(data) || isIdentifierGolDarah(data) || data.toLowerCase().contains("provinsi")
-                || isIdentifierKabKota(data) || isNotIdentifierPekerjaan(data) || isNotIdentifierBerlakuHingga(data) || isNotIdentifierKewarganegaraan(data);
+        boolean result = data.equalsIgnoreCase("nik") || data.equals("Nama")
+                || identifierChecker.isIdentifierTempatTanggalLahir(data)
+                || identifierChecker.isIdentifierJenisKelamin(data) || identifierChecker.isIdentifierAlamat(data)
+                || identifierChecker.isIdentifierRtRw(data) || identifierChecker.isIdentifierKelDesa(data)
+                || identifierChecker.isIdentifierKecamatan(data) || identifierChecker.isIdentifierAgama(data)
+                || identifierChecker.isIdentifierStatusPerkawinan(data) || identifierChecker.isIdentifierGolDarah(data)
+                || data.toLowerCase().contains("provinsi") || identifierChecker.isIdentifierKabKota(data)
+                || identifierChecker.isNotIdentifierPekerjaan(data) || identifierChecker.isNotIdentifierBerlakuHingga(data)
+                || identifierChecker.isNotIdentifierKewarganegaraan(data);
         return !result;
     }
 
-    private boolean isValidJenisKelamin(String data){
-        data = data.toLowerCase().replace(":","");
-        return data.contains("laki-laki") || data.contains("perempuan")
-                || data.startsWith("lak")
-                || data.startsWith("per");
-    }
-
-    private boolean isValidRtRw(String data){
-        return data.contains("/") && data.replace(":","").length() == 7 && isNumberExist(data);
-    }
-
-    private boolean isValidAgama(String data){
-        return data.equalsIgnoreCase("islam") || data.equalsIgnoreCase("kristen")
-                || data.equalsIgnoreCase("katolik") || data.equalsIgnoreCase("budha")
-                || data.equalsIgnoreCase("hindu") || data.equalsIgnoreCase("konghuchu");
-    }
-
-    private boolean isValidGolDarah(String data){
-        return data.equalsIgnoreCase("a") || data.equalsIgnoreCase("b") || data.equalsIgnoreCase("ab")
-                || data.equalsIgnoreCase("o");
-    }
-
-    private boolean isPossibleAlamat(String data){
-        data = data.toLowerCase();
-        return data.contains("jl.") || data.contains("jalan ") || data.contains("no.") || data.contains("blok.") || data.contains("blok");
-    }
-
-    private boolean isPossibleDate(String data){
-        return data.contains("-") && data.split("-").length == 3 && isNumberExist(data);
-    }
-
-    private void validateData(){
-        // NIK Validation
-        String data = nik.getValue();
-        String[] cari = {"l","I","z","Z","A","S","s","b","J","B","q","o","O"};
-        String[] ganti = {"1","1","2","2","4","5","5","6","7","8","9","0","0"};
-        for (int i = 0; i < cari.length; i++){
-            data = data.replace(cari[i], ganti[i]);
-        }
-        nik.setValue(data);
-        // Tanggal lahir
-        data = tanggalLahir.getValue();
-        for (int i = 0; i < cari.length; i++){
-            data = data.replace(cari[i], ganti[i]);
-        }
-        tanggalLahir.setValue(data);
-        // RT/RW
-        data = rtRw.getValue();
-        for (int i = 0; i < cari.length; i++){
-            data = data.replace(cari[i], ganti[i]);
-        }
-        rtRw.setValue(data);
-        // Golongan Darah
-        data = golonganDarah.getValue();
-        String[] cariAngka = {"4","0","8"};
-        String[] gantiHuruf = {"A","O","B"};
-        for (int i = 0; i < cariAngka.length; i++){
-            data = data.replace(cariAngka[i], gantiHuruf[i]);
-        }
-        golonganDarah.setValue(data);
-        // Jenis Kelamin
-        data = jenisKelamin.getValue();
-        if (data.toLowerCase().contains("lak")){
-            data = "LAKI-LAKI";
-            jenisKelamin.setValue(data);
-        } else if (data.toLowerCase().contains("per") || data.toLowerCase().contains("puan") || data.contains("rem")){
-            data = "PEREMPUAN";
-            jenisKelamin.setValue(data);
-        }
-        printResult();
-    }
-
-    private void mappingDataWithText(){
+    private void mappingDataWithText(GenerateKTPData.Listener listener){
         for (Text.TextBlock block : text.getTextBlocks()){
             for (Text.Line line : block.getLines()){
                 String data = line.getText();
@@ -249,13 +105,12 @@ public class GenerateKTPData {
                 getGolonganDarahData(data);
             }
         }
-        validateData();
+        validateData(listener);
     }
 
-    private void mappingData(){
+    private void mappingData(GenerateKTPData.Listener listener){
         // Can be converted into List<Text.Line> instead of List<String> to reduce looping
         for (String data : resultScan){
-//            if (getAlamatLineTwo(data)) continue;
             if (getNIKData(data)) continue;
             if (getNamaData(data)) continue;
             if (getTempatLahirData(data)) continue;
@@ -271,7 +126,44 @@ public class GenerateKTPData {
             if (getKabupatenKotaData(data)) continue;
             getGolonganDarahData(data);
         }
-        validateData();
+        validateData(listener);
+    }
+
+    private void validateData(final GenerateKTPData.Listener listener){
+        ocrValidator.validateData(
+                nik.getValue(), tanggalLahir.getValue(), rtRw.getValue(), golonganDarah.getValue(),
+                jenisKelamin.getValue(), new OCRValidator.ValueSetter() {
+                    @Override
+                    public void setNikValue(String data) {
+                        nik.setValue(data);
+                    }
+
+                    @Override
+                    public void setTanggalLahirValue(String data) {
+                        tanggalLahir.setValue(data);
+                    }
+
+                    @Override
+                    public void setRtRwValue(String data) {
+                        rtRw.setValue(data);
+                    }
+
+                    @Override
+                    public void setGolonganDarahValue(String data) {
+                        golonganDarah.setValue(data);
+                    }
+
+                    @Override
+                    public void setJenisKelaminValue(String data) {
+                        jenisKelamin.setValue(data);
+                    }
+
+                    @Override
+                    public void finishAll() {
+                        printResult();
+                        listener.finishScan();
+                    }
+                });
     }
 
     private void printResult(){
@@ -290,6 +182,23 @@ public class GenerateKTPData {
         System.out.println("KABUPATEN/KOTA "+kabupatenKota);
         System.out.println("GOLONGAN DARAH "+golonganDarah.getValue());
         System.out.println(Arrays.toString(identifiers.toArray()));
+
+    }
+
+    private boolean checkIdentifier(String identifier){
+        switch (identifier){
+            case "nik": return isNikFound;
+            case "nama": return isNamaFound;
+            case "ttl": return isTempatLahirFound;
+            case "alamat": return isAlamatFound;
+            case "rtrw": return isRtRwFound;
+            case "keldesa": return isKelDesaFound;
+            case "kec": return isKecamatanFound;
+            case "agama": return isAgamaFound;
+            case "sp": return isStatusPerkawinanFound;
+            case "gd": return isGolonganDarahFound;
+        }
+        return false;
     }
 
     private boolean isPreviousAndNextFound(String identifier){
@@ -299,73 +208,11 @@ public class GenerateKTPData {
         if (index < 0) return false;
         if (index > 0){
             String idtf = identifiers.get(index - 1);
-            switch (idtf){
-                case "nik":
-                    prev = isNikFound;
-                    break;
-                case "nama":
-                    prev = isNamaFound;
-                    break;
-                case "ttl":
-                    prev = isTempatLahirFound;
-                    break;
-                case "alamat":
-                    prev = isAlamatFound;
-                    break;
-                case "rtrw":
-                    prev = isRtRwFound;
-                    break;
-                case "keldesa":
-                    prev = isKelDesaFound;
-                    break;
-                case "kec":
-                    prev = isKecamatanFound;
-                    break;
-                case "agama":
-                    prev = isAgamaFound;
-                    break;
-                case "sp":
-                    prev = isStatusPerkawinanFound;
-                    break;
-                case "gd":
-                    prev = isGolonganDarahFound;
-                    break;
-            }
+            prev = checkIdentifier(idtf);
         }
         if (index < lastIndex){
             String idtf = identifiers.get(index + 1);
-            switch (idtf){
-                case "nik":
-                    next = isNikFound;
-                    break;
-                case "nama":
-                    next = isNamaFound;
-                    break;
-                case "ttl":
-                    next = isTempatLahirFound;
-                    break;
-                case "alamat":
-                    next = isAlamatFound;
-                    break;
-                case "rtrw":
-                    next = isRtRwFound;
-                    break;
-                case "keldesa":
-                    next = isKelDesaFound;
-                    break;
-                case "kec":
-                    next = isKecamatanFound;
-                    break;
-                case "agama":
-                    next = isAgamaFound;
-                    break;
-                case "sp":
-                    next = isStatusPerkawinanFound;
-                    break;
-                case "gd":
-                    next = isGolonganDarahFound;
-                    break;
-            }
+            next = checkIdentifier(idtf);
         }
         return prev || next;
     }
@@ -373,33 +220,17 @@ public class GenerateKTPData {
     // Scpecial field : Jenis Kelamin, Golongan Darah, Agama
     private boolean exceptionForSpecialField(String data){
         data = data.toLowerCase();
-        boolean result = isValidAgama(data) || isValidRtRw(data) || isValidJenisKelamin(data) || isValidGolDarah(data)
-                || data.equals("kawin") || data.equals("belum kawin");
+        boolean result = ocrValidator.isValidAgama(data) || ocrValidator.isValidRtRw(data)
+                || ocrValidator.isValidJenisKelamin(data) || ocrValidator.isValidGolDarah(data)
+                || data.equals("kawin") || data.equals("belum kawin") || data.equals("wni");
         return !result;
     }
 
     // Check if data contains any number
-    private boolean isNumberExist(String data){
-        Pattern pattern = Pattern.compile(".*\\d.*");
-        Matcher matcher = pattern.matcher(data);
-        return matcher.find();
-    }
-
-    private boolean getAlamatLineTwo(String data){
-        if (alamatLine == 1){
-            if (isNotIdentifier(data) && exceptionForSpecialField(data) && !isPossibleDate(data)){
-                String newAlamat = alamat.getValue() + " " + data;
-                alamat.setValue(newAlamat);
-                alamatLine = 2;
-                return true;
-            }
-        }
-        return false;
-    }
 
     private boolean getNIKData(String data){
         if (isNikFound) return false; // skip process if nik is already found
-        boolean isNumberExist = isNumberExist(data);
+        boolean isNumberExist = ocrValidator.isNumberExist(data);
         // check if data is equal to nik with case ignored
         if (data.equalsIgnoreCase("nik") && nik.getIndex() < 0) {
             nik.setIndex(lastIndexIdentifier);
@@ -442,7 +273,8 @@ public class GenerateKTPData {
             isNamaFound = true;
             return true;
         }
-        if (isNotIdentifier(data) && exceptionForSpecialField(data) && !isPossibleAlamat(data) && !isPossibleDate(data)){
+        if (isNotIdentifier(data) && exceptionForSpecialField(data) && !ocrValidator.isPossibleAlamat(data)
+                && !ocrValidator.isPossibleDate(data)){
             if (identifiers.indexOf("nama") == lastIndexValue && !data.contains(":")){
                 nama.setValue(data);
                 lastIndexValue++;
@@ -460,7 +292,7 @@ public class GenerateKTPData {
 
     private boolean getTempatLahirData(String data){
         if (data.length() < 11) return false;
-        boolean isTempatTglLahir = isIdentifierTempatTanggalLahir(data);
+        boolean isTempatTglLahir = identifierChecker.isIdentifierTempatTanggalLahir(data);
         if (isTempatLahirFound) return false;
         if (isTempatTglLahir && !data.contains(":") && tempatLahir.getIndex() < 0 && data.length() <= 16){
             tempatLahir.setIndex(lastIndexIdentifier);
@@ -535,7 +367,7 @@ public class GenerateKTPData {
             isTanggalLahirFound = true;
             return true;
         }
-        if (!data.contains(":") && data.contains("-") && isNumberExist(data) && data.split("-").length == 3){
+        if (!data.contains(":") && data.contains("-") && ocrValidator.isNumberExist(data) && data.split("-").length == 3){
             tanggalLahir.setValue(data);
             isTanggalLahirFound = true;
             return true;
@@ -546,7 +378,7 @@ public class GenerateKTPData {
     private boolean getJenisKelaminData(String data){
         if (isJenisKelaminFound) return false;
         if (data.length() < 3) return false;
-        boolean isIdentifier = isIdentifierJenisKelamin(data);
+        boolean isIdentifier = identifierChecker.isIdentifierJenisKelamin(data);
         if (data.toCharArray()[0] != ':' && isIdentifier && jenisKelamin.getIndex() < 0){
             jenisKelamin.setIndex(lastIndexIdentifier);
             lastIndexIdentifier++;
@@ -559,7 +391,7 @@ public class GenerateKTPData {
             isJenisKelaminFound = true;
             return true;
         }
-        boolean isValue = isValidJenisKelamin(data);
+        boolean isValue = ocrValidator.isValidJenisKelamin(data);
         if (isValue){
             jenisKelamin.setValue(data);
             if (jenisKelamin.getIndex() > -1) lastIndexValue++;
@@ -571,7 +403,7 @@ public class GenerateKTPData {
 
     private boolean getAlamatData(String data){
         if (isAlamatFound) return false;
-        boolean isIdentifier = isIdentifierAlamat(data);
+        boolean isIdentifier = identifierChecker.isIdentifierAlamat(data);
         if (data.toCharArray()[0] != ':' && isIdentifier && alamat.getIndex() < 0){
             alamat.setIndex(lastIndexIdentifier);
             lastIndexIdentifier++;
@@ -582,28 +414,24 @@ public class GenerateKTPData {
             alamat.setValue(data.replace(":", ""));
             lastIndexValue++;
             isAlamatFound = true;
-            alamatLine = 1;
             return true;
         }
         if (isNotIdentifier(data) && exceptionForSpecialField(data)) {
             String dt = data.contains(":") ? data.replace(":","") : data;
-            if (isPossibleAlamat(data)){
+            if (ocrValidator.isPossibleAlamat(data)){
                 alamat.setValue(dt);
                 lastIndexValue++;
                 isAlamatFound = true;
-                alamatLine = 1;
                 return true;
             } else if (lastIndexValue == alamat.getIndex()){
                 alamat.setValue(dt);
                 lastIndexValue++;
                 isAlamatFound = true;
-                alamatLine = 1;
                 return true;
             } else if (isPreviousAndNextFound("alamat")){
                 alamat.setValue(dt);
                 lastIndexValue++;
                 isAlamatFound = true;
-                alamatLine = 1;
                 return true;
             }
         }
@@ -612,7 +440,7 @@ public class GenerateKTPData {
 
     private boolean getRtRwData(String data){
         if (isRtRwFound) return false;
-        boolean isIdentifier = isIdentifierRtRw(data);
+        boolean isIdentifier = identifierChecker.isIdentifierRtRw(data);
         if (isIdentifier && !data.contains(":") && rtRw.getIndex() < 0){
             rtRw.setIndex(lastIndexIdentifier);
             lastIndexIdentifier++;
@@ -625,7 +453,7 @@ public class GenerateKTPData {
             isRtRwFound = true;
             return true;
         }
-        if (isValidRtRw(data)){
+        if (ocrValidator.isValidRtRw(data)){
             rtRw.setValue(data);
             if (rtRw.getIndex() > -1) lastIndexValue++;
             isRtRwFound = true;
@@ -637,7 +465,7 @@ public class GenerateKTPData {
     private boolean getKelDesaData(String data){
         if (isKelDesaFound) return false;
         if (data.length() < 4) return false;
-        boolean isIdentifier = isIdentifierKelDesa(data);
+        boolean isIdentifier = identifierChecker.isIdentifierKelDesa(data);
         if (isIdentifier && kelDesa.getIndex() < 0){
             kelDesa.setIndex(lastIndexIdentifier);
             lastIndexIdentifier++;
@@ -650,8 +478,8 @@ public class GenerateKTPData {
             isKelDesaFound = true;
             return true;
         }
-        if (isNotIdentifier(data) && !isValidRtRw(data) && !isValidJenisKelamin(data) && !isValidAgama(data)
-                && !isPossibleDate(data) && !isPossibleAlamat(data)){
+        if (isNotIdentifier(data) && exceptionForSpecialField(data)
+                && !ocrValidator.isPossibleDate(data) && !ocrValidator.isPossibleAlamat(data)){
             String dt = data.contains(":") ? data.replace(":","") : data;
             if (lastIndexValue == kelDesa.getIndex()){
                 kelDesa.setValue(dt);
@@ -670,7 +498,7 @@ public class GenerateKTPData {
 
     private boolean getKecamatanData(String data){
         if (isKecamatanFound) return false;
-        boolean isIdentifier = isIdentifierKecamatan(data);
+        boolean isIdentifier = identifierChecker.isIdentifierKecamatan(data);
         if (isIdentifier && kecamatan.getIndex() < 0 && !data.contains(":")){
             kecamatan.setIndex(lastIndexIdentifier);
             lastIndexIdentifier++;
@@ -683,8 +511,8 @@ public class GenerateKTPData {
             isKecamatanFound = true;
             return true;
         }
-        if (isNotIdentifier(data) && !isValidRtRw(data) && !isValidJenisKelamin(data) && !isValidAgama(data)
-                && !isPossibleDate(data) && !isPossibleAlamat(data)){
+        if (isNotIdentifier(data) && exceptionForSpecialField(data) && !ocrValidator.isPossibleDate(data)
+                && !ocrValidator.isPossibleAlamat(data)){
             String dt = data.contains(":") ? data.replace(":","") : data;
             if (lastIndexValue == kecamatan.getIndex()){
                 kecamatan.setValue(dt);
@@ -704,7 +532,7 @@ public class GenerateKTPData {
     private boolean getAgamaData(String data){
         if (isAgamaFound) return false;
         if (data.length() < 2) return false;
-        boolean isIdentifier = isIdentifierAgama(data);
+        boolean isIdentifier = identifierChecker.isIdentifierAgama(data);
         if (isIdentifier && agama.getIndex() < 0){
             agama.setIndex(lastIndexIdentifier);
             lastIndexIdentifier++;
@@ -718,7 +546,7 @@ public class GenerateKTPData {
             return true;
         }
         // normal religion check
-        boolean isNormalReligion = isValidAgama(data);
+        boolean isNormalReligion = ocrValidator.isValidAgama(data);
         if (isNormalReligion && !data.contains(":")){
             agama.setValue(data);
             if (agama.getIndex() > -1) lastIndexValue++;
@@ -730,7 +558,7 @@ public class GenerateKTPData {
 
     private boolean getStatusPerkawinanData(String data){
         if (isStatusPerkawinanFound) return false;
-        boolean isIdentifier = isIdentifierStatusPerkawinan(data);
+        boolean isIdentifier = identifierChecker.isIdentifierStatusPerkawinan(data);
         if (isIdentifier && !data.contains(":") && statusPerkawinan.getIndex() < 0){
             statusPerkawinan.setIndex(lastIndexIdentifier);
             lastIndexIdentifier++;
@@ -785,7 +613,7 @@ public class GenerateKTPData {
 
     private boolean getKabupatenKotaData(String data){
         if (!kabupatenKota.isEmpty()) return false;
-        boolean isKabupatenKota = isIdentifierKabKota(data);
+        boolean isKabupatenKota = identifierChecker.isIdentifierKabKota(data);
         if (isKabupatenKota){
 //            String[] kabKotaDt = data.split(" ");
 //            String[] removeFirst = Arrays.copyOfRange(kabKotaDt, 1, kabKotaDt.length);
@@ -800,35 +628,34 @@ public class GenerateKTPData {
         return false;
     }
 
-    private boolean getGolonganDarahData(String data){
-        if (isGolonganDarahFound) return false;
-        boolean isIdentifier = isIdentifierGolDarah(data);
+    private void getGolonganDarahData(String data){
+        if (isGolonganDarahFound) return;
+        boolean isIdentifier = identifierChecker.isIdentifierGolDarah(data);
         if (isIdentifier && !data.contains(":") && golonganDarah.getIndex() < 0){
             if (golonganDarah.getIndex() < 0){
                 golonganDarah.setIndex(lastIndexIdentifier);
                 lastIndexIdentifier++;
                 identifiers.add("gd");
-                return true;
+                return;
             }
         }
         if (data.toCharArray()[0] == ':' && lastIndexValue == golonganDarah.getIndex()){
             golonganDarah.setValue(data.replace(":",""));
             lastIndexValue++;
             isGolonganDarahFound = true;
-            return true;
+            return;
         }
         if (isIdentifier && data.contains(":")){
             golonganDarah.setValue(data.split(":")[1]);
             isGolonganDarahFound = true;
-            return true;
+            return;
         }
         String[] splitData = data.split(" ");
         if (isIdentifier && splitData.length == 3){
             golonganDarah.setValue(splitData[2]);
             isGolonganDarahFound = true;
-            return true;
+            return;
         }
-        return false;
     }
 
     public String getProvinsi() {

@@ -255,7 +255,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 results.add(line.getText());
             }
         }
-        ktpData = new GenerateKTPData(results);
+        ktpData = new GenerateKTPData(results, new GenerateKTPData.Listener() {
+            @Override
+            public void finishScan() {
+                System.out.println(ktpData.getNik());
+            }
+        });
 //        Log.d("Hasilnya", Arrays.toString(results.toArray()));
     }
 
